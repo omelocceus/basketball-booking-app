@@ -1,4 +1,5 @@
 const container = document.getElementById('timeSlots');
+// this function is rendering the times available 
 
 async function renderTimes() {
   const dateSelected = document.getElementById('datePicker').value;
@@ -42,3 +43,51 @@ async function renderTimes() {
     console.error(err);
   }
 }
+
+// This block of code is getting values of input fields and posting them after on click 
+
+document.getElementById('bookBtn').addEventListener('click', async () => {
+
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  const date = document.getElementById('datePicker').value;
+  const time = document.getElementById('selectedTime').value;
+
+  if (!name || !email || !date || !time) {
+    alert("Please complete all fields.");
+    return;
+  }
+
+  try {
+
+    const response = await fetch('http://localhost:3000/api/book', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        date,
+        time
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.error);
+      return;
+    }
+
+    alert("Booking successful!");
+
+    // Redirect to payment page
+    window.location.href = "payment.html";
+
+  } catch (err) {
+    console.error(err);
+    alert("Booking failed.");
+  }
+
+});
