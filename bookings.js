@@ -44,7 +44,7 @@ async function renderTimes() {
   }
 }
 
-// This block of code is getting values of input fields and posting them after on click 
+// This block of code is getting values of input fields and posting them after user clicks book now
 
 document.getElementById('bookBtn').addEventListener('click', async () => {
 
@@ -83,7 +83,16 @@ document.getElementById('bookBtn').addEventListener('click', async () => {
     alert("Booking successful!");
 
     // Redirect to payment page
-    window.location.href = "payment.html";
+    const paymentResponse = await fetch(
+  'http://localhost:3000/create-checkout-session',
+  {
+    method: 'POST'
+  }
+);
+
+const paymentData = await paymentResponse.json();
+
+window.location.href = paymentData.url;
 
   } catch (err) {
     console.error(err);
