@@ -46,57 +46,82 @@ async function renderTimes() {
 
 // This block of code is getting values of input fields and posting them after user clicks book now
 
-document.getElementById('bookBtn').addEventListener('click', async () => {
+document.getElementById('bookBtn')
+.addEventListener('click', async () => {
 
-  const name = document.getElementById('name').value;
-  const email = document.getElementById('email').value;
-  const date = document.getElementById('datePicker').value;
-  const time = document.getElementById('selectedTime').value;
+  const name =
+    document.getElementById('name').value;
 
-  if (!name || !email || !date || !time) {
+  const email =
+    document.getElementById('email').value;
+
+  const phone =
+    document.getElementById('phone').value;
+
+  const date =
+    document.getElementById('datePicker').value;
+
+  const time =
+    document.getElementById('selectedTime').value;
+
+  const trainingType =
+    document.getElementById('trainingType').value;
+
+  if (
+    !name ||
+    !email ||
+    !phone ||
+    !date ||
+    !time
+  ) {
+
     alert("Please complete all fields.");
+
     return;
+
   }
 
   try {
 
-    const response = await fetch('http://localhost:3000/api/book', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name,
-        email,
-        date,
-        time
-      })
-    });
+    const response = await fetch(
+      'http://localhost:3000/create-checkout-session',
+      {
+        method: 'POST',
+
+        headers: {
+          'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          date,
+          time,
+          trainingType
+        })
+      }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
+
       alert(data.error);
+
       return;
+
     }
 
-    alert("Booking successful!");
-
-    // Redirect to payment page
-    const paymentResponse = await fetch(
-  'http://localhost:3000/create-checkout-session',
-  {
-    method: 'POST'
-  }
-);
-
-const paymentData = await paymentResponse.json();
-
-window.location.href = paymentData.url;
+    // Redirect to Stripe Checkout
+    window.location.href = data.url;
 
   } catch (err) {
+
     console.error(err);
-    alert("Booking failed.");
+
+    alert("Payment session failed.");
+
   }
 
 });
