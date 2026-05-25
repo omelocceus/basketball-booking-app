@@ -1,7 +1,4 @@
-const container =
-  document.getElementById(
-    'bookingsContainer'
-  );
+
 
 const filterDate =
   document.getElementById(
