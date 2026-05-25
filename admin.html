@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>Admin Dashboard</title>
+
+  <link rel="stylesheet" href="admin.css">
+
+</head>
+
+<body>
+
+  <div class="dashboard">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+      <img
+        src="all aroudn development picture.PNG"
+        class="logo"
+      >
+
+      <h2>Dashboard</h2>
+
+      <div class="sidebar-stats">
+
+        <div class="mini-card">
+
+          <span>Total</span>
+
+          <h3 id="totalBookings">0</h3>
+
+        </div>
+
+        <div class="mini-card">
+
+          <span>Today</span>
+
+          <h3 id="todayBookings">0</h3>
+
+        </div>
+
+        <div class="mini-card">
+
+          <span>Revenue</span>
+
+          <h3 id="totalRevenue">$0</h3>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main-content">
+
+      <!-- TOP -->
+
+      <div class="top-header">
+
+        <div>
+
+          <h1>
+            Upcoming Sessions
+          </h1>
+
+          <p>
+            Manage bookings and sessions
+          </p>
+
+        </div>
+
+        <input
+          type="date"
+          id="filterDate"
+        >
+
+      </div>
+
+      <!-- BOOKINGS -->
+
+      <div class="table-container">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Name</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Actions</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="bookingsTable"></tbody>
+
+        </table>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script src="admin.js"></script>
+
+</body>
+
+</html>
