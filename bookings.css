@@ -1,63 +1,300 @@
-/*Original
-/* Reset default browser styles */
-body {
+/* RESET */
+
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* BODY */
+
+body {
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
-/* Main app container */
-#main {
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
-  width: 350px;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-}
+  background:
+    linear-gradient(
+      180deg,
+      #07152d,
+      #0d2245,
+      #102d5c
+    );
 
-/* Title */
-h1 {
-  margin-bottom: 20px;
-  color: #333;
-}
+  min-height: 100vh;
 
-/* Grid for time slots */
-.slots {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-/* Buttons */
-button {
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  background: #667eea;
   color: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  padding: 20px;
 }
 
-/* Hover effect */
-button:hover {
-  background: #5a67d8;
-  transform: scale(1.05);
+/* LOGO */
+
+.logo-container {
+  margin-top: 10px;
+  margin-bottom: 20px;
+
+  animation: fadeIn 1s ease;
 }
 
-/* Selected button */
-button.selected {
-  background: #48bb78;
+.logo {
+  width: 180px;
+  max-width: 80vw;
+
+  filter:
+    drop-shadow(0 8px 18px rgba(0,0,0,0.4));
 }
 
-/* Selected text display */
-.selected {
+/* MAIN CARD */
+
+#main {
+  width: 100%;
+  max-width: 420px;
+
+  background: rgba(255,255,255,0.08);
+
+  backdrop-filter: blur(12px);
+
+  border-radius: 24px;
+
+  padding: 25px;
+
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.35);
+
+  border:
+    1px solid rgba(255,255,255,0.12);
+
+  animation: slideUp 0.6s ease;
+}
+
+/* HEADINGS */
+
+h1 {
+  font-size: 28px;
+
+  text-align: center;
+
+  margin-bottom: 25px;
+
+  line-height: 1.2;
+}
+
+h2 {
+  margin-bottom: 15px;
+  margin-top: 20px;
+
+  font-size: 20px;
+}
+
+/* LABELS */
+
+label {
+  display: block;
+
+  margin-bottom: 8px;
+
   font-weight: bold;
-  color: #444;
+
+  color: #dbe8ff;
+}
+
+/* INPUTS */
+
+input,
+select {
+  width: 100%;
+
+  padding: 14px;
+
+  border-radius: 14px;
+
+  border: none;
+
+  margin-bottom: 16px;
+
+  font-size: 16px;
+
+  background: rgba(255,255,255,0.12);
+
+  color: white;
+
+  outline: none;
+
+  transition: 0.25s;
+}
+
+input:focus,
+select:focus {
+  background: rgba(255,255,255,0.18);
+
+  transform: scale(1.02);
+}
+
+/* TIME SLOT GRID */
+
+#timeSlots {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 12px;
+
+  margin-top: 15px;
+}
+
+/* TIME BUTTONS */
+
+.time-btn {
+  padding: 14px;
+
+  border: none;
+
+  border-radius: 14px;
+
+  background: rgba(255,255,255,0.1);
+
+  color: white;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: 0.25s;
+
+  font-size: 15px;
+}
+
+.time-btn:hover {
+  transform: translateY(-3px);
+
+  background: #ff7b00;
+}
+
+/* SELECTED TIME */
+
+.time-btn.selected {
+  background:
+    linear-gradient(
+      135deg,
+      #ff7b00,
+      #ff2f00
+    );
+
+  transform: scale(1.05);
+
+  box-shadow:
+    0 4px 15px rgba(255,123,0,0.45);
+}
+
+/* BUTTONS */
+
+button {
+  width: 100%;
+
+  padding: 16px;
+
+  border: none;
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ff7b00,
+      #ff2f00
+    );
+
+  color: white;
+
+  font-size: 16px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+
+  margin-top: 10px;
+}
+
+button:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 8px 18px rgba(255,123,0,0.4);
+}
+
+/* HR */
+
+hr {
+  border: none;
+
+  height: 1px;
+
+  background: rgba(255,255,255,0.15);
+
+  margin: 25px 0;
+}
+
+/* MESSAGE */
+
+#message {
+  text-align: center;
+
+  margin-top: 15px;
+
+  font-weight: bold;
+}
+
+/* MOBILE */
+
+@media (max-width: 480px) {
+
+  #main {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .logo {
+    width: 150px;
+  }
+
+}
+
+/* ANIMATIONS */
+
+@keyframes fadeIn {
+
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+}
+
+@keyframes slideUp {
+
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+
 }
