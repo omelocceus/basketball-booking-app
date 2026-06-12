@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "check": "node --check server.js && node --check src/http/app.js && node --check src/services/bookingService.js && node --check src/validation/schemas.js",
+    "test": "NODE_ENV=test node --test",
     "start": "node server.js"
   },
   "keywords": [],
@@ -11,9 +12,16 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mysql2": "^3.22.0",
-    "stripe": "^22.1.1"
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
+    "pg": "^8.21.0",
+    "stripe": "^22.1.1",
+    "zod": "^4.4.3"
   },
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "supertest": "^7.2.2"
+  }
 }

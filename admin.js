@@ -4,6 +4,15 @@ const filterDate =
   document.getElementById(
     'filterDate'
   );
+const API_BASE_URL = window.API_BASE_URL || '';
+const ADMIN_TOKEN =
+  window.ADMIN_API_TOKEN ||
+  window.localStorage.getItem('ADMIN_API_TOKEN') ||
+  '';
+
+function adminHeaders() {
+  return ADMIN_TOKEN ? { 'x-admin-token': ADMIN_TOKEN } : {};
+}
 
 async function loadBookings() {
 
@@ -11,7 +20,10 @@ async function loadBookings() {
 
     const response =
       await fetch(
-        'http://localhost:3000/api/bookings'
+        `${API_BASE_URL}/api/bookings`,
+        {
+          headers: adminHeaders()
+        }
       );
 
     const bookings =
@@ -194,9 +206,10 @@ async function deleteBooking(id) {
   try {
 
     await fetch(
-      `http://localhost:3000/api/bookings/${id}`,
+      `${API_BASE_URL}/api/bookings/${id}`,
       {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: adminHeaders()
       }
     );
 

@@ -1,4 +1,5 @@
 const container = document.getElementById('timeSlots');
+const API_BASE_URL = window.API_BASE_URL || '';
 // this function is rendering the times available 
 
 async function renderTimes() {
@@ -13,7 +14,7 @@ async function renderTimes() {
   container.innerHTML = "Loading..."; // clear old slots
 
   try {
-    const response = await fetch(`http://localhost:3000/api/available-times?date=${dateSelected}`);
+    const response = await fetch(`${API_BASE_URL}/api/available-times?date=${dateSelected}`);
     const times = await response.json();
 
     container.innerHTML = ""; // clear loading text
@@ -84,7 +85,7 @@ document.getElementById('bookBtn')
   try {
 
     const response = await fetch(
-      'http://localhost:3000/create-checkout-session',
+      `${API_BASE_URL}/create-checkout-session`,
       {
         method: 'POST',
 
