@@ -151,11 +151,11 @@ app.post("/create-checkout-session", async (req, res) => {
     // Stripe Price IDs
     const prices = {
 
-      oncourt: "price_1TZjPFFz0soklAZ0Ch1sYUKF",
+      oncourt: "price_1ThXD9CM9i3BBGzHEnJ1ltVJ",
 
-      sand: "price_1Ta1XtFz0soklAZ0A7zkNr4T",
+      sand: "price_1ThXGhCM9i3BBGzHbbBdDXXq",
 
-      weight: "price_1Ta1gdFz0soklAZ0rJOBrxuy"
+      weight: "price_1ThXIICM9i3BBGzH2CeCMcEM"
 
     };
 
