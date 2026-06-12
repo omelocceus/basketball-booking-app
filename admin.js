@@ -120,7 +120,7 @@ function renderBookings(bookings) {
 
             <button
               class="cancel-btn"
-              onclick="deleteBooking(${booking.id})"
+              data-booking-id="${booking.id}"
             >
               Cancel
             </button>
@@ -191,6 +191,16 @@ filterDate.addEventListener(
   'change',
   loadBookings
 );
+
+document
+  .getElementById('bookingsTable')
+  .addEventListener('click', event => {
+    if (!event.target.classList.contains('cancel-btn')) {
+      return;
+    }
+
+    deleteBooking(event.target.dataset.bookingId);
+  });
 
 loadBookings();
 

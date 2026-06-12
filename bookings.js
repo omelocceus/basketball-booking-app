@@ -1,5 +1,6 @@
 const container = document.getElementById('timeSlots');
 const API_BASE_URL = window.API_BASE_URL || '';
+const viewTimesBtn = document.getElementById('viewTimesBtn');
 // this function is rendering the times available 
 
 async function renderTimes() {
@@ -44,6 +45,8 @@ async function renderTimes() {
     console.error(err);
   }
 }
+
+viewTimesBtn.addEventListener('click', renderTimes);
 
 // This block of code is getting values of input fields and posting them after user clicks book now
 
