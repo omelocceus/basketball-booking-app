@@ -2,33 +2,41 @@
 
 ## Cursor Cloud specific instructions
 
-### What this repo contains
-This is `basketball-booking-app` — a basketball training session booking app. **Only the static frontend is committed**:
-- Customer booking page: `bookings.html` + `bookings.js` + `bookings.css`
-- Admin dashboard: `admin.html` + `admin.js` + `admin.css`
+### What this app is
+`basketball-booking-app` — a basketball training session booking app made of three parts:
+- **Static frontend** (no build step): `bookings.html`/`bookings.js`/`bookings.css` (customer booking) and `admin.html`/`admin.js`/`admin.css` (admin dashboard). The frontend JS hardcodes the API base `http://localhost:3000`.
+- **Express backend**: `server.js` (listens on port 3000).
+- **MySQL database**: `booking_app`.
 
-There is **no build step** — the frontend is plain HTML/CSS/JS.
+`node_modules` is committed to this repo. `server.js` was previously gitignored; it is now tracked.
 
-### Important: the backend is not in the repo
-- `server.js` is listed in `.gitignore` and does **not** exist in version control. It has never been committed.
-- Therefore `npm start` (which runs `node server.js`, see `package.json`) **will fail** out of the box — there is no `server.js` to run.
-- The dependencies in `package.json` (`express`, `mysql2`, `stripe`, `cors`) are backend deps for that local-only `server.js`.
+### Backend config (hardcoded in `server.js`)
+- MySQL: host `localhost`, user `root`, password `Pb27553528!`, database `booking_app`.
+- Stripe: a test-mode secret key and price IDs are hardcoded in `server.js`.
 
-### Running the frontend (dev)
-Dependencies install with `npm install`. To view the committed frontend, serve the static files (the frontend JS hardcodes `http://localhost:3000` for its API calls):
-
+### Database setup (required before the backend works)
+Start MySQL and create the schema (MySQL 8 is installed in the VM image):
 ```
-python3 -m http.server 3000
+sudo service mysql start
 ```
+The backend expects database `booking_app` with two tables:
+- `schedule(id, day_of_week VARCHAR, time_slot VARCHAR)` — available slots per weekday (e.g. `day_of_week='Friday'`).
+- `bookings(id, name, email, phone, date DATE, time_slot VARCHAR, training_type VARCHAR)`.
+`GET /api/available-times?date=` returns `schedule` rows for that date's weekday minus slots already in `bookings`. If the DB/tables/seed data are missing on a fresh VM, recreate them (root password is `Pb27553528!`) and seed `schedule` rows, otherwise the booking page shows no slots.
 
-Then open `http://localhost:3000/bookings.html` and `http://localhost:3000/admin.html`. Client-side behavior (form validation, training-type selection, dashboard layout) works without a backend. The logo image (`all aroudn development picture.PNG`) is not committed, so it will not render.
+### Running the app (dev)
+The backend does **not** serve the static HTML — run two processes:
+```
+node server.js                 # API on http://localhost:3000
+python3 -m http.server 8080    # serves the static frontend
+```
+Then open `http://localhost:8080/bookings.html` and `http://localhost:8080/admin.html`. CORS is enabled, so the 8080 pages can call the 3000 API.
 
-### Full end-to-end requires extra pieces (NOT in repo)
-Booking submission, available-time loading, admin listing, and Stripe checkout all call `http://localhost:3000` and require a backend that must be supplied separately:
-- A `server.js` Express backend implementing: `GET /api/available-times?date=`, `POST /create-checkout-session`, `GET /api/bookings`, `DELETE /api/bookings/:id`
-- A **MySQL** database (driver `mysql2`) with a bookings schema (no schema/SQL file is committed)
-- A **Stripe** API key (test mode) for the checkout flow
+### Known caveats (pre-existing, not env issues)
+- In `server.js`, `express.json()` is registered **after** the routes, so POST endpoints (`/api/book`, `/create-checkout-session`) receive `undefined` `req.body` and error out. The read endpoints (`GET /api/available-times`, `GET /api/bookings`) work fine.
+- `admin.js` calls `DELETE /api/bookings/:id`, but `server.js` has no DELETE route, so the "Cancel" button won't delete.
+- Real booking creation flows through Stripe Checkout + the `/webhook` handler, which needs valid Stripe keys/prices.
+- Admin date-filter / "Today" stat compare against the raw datetime string returned by MySQL, so they won't match a `YYYY-MM-DD` value.
 
 ### Tests / lint
-- No tests exist. `npm test` is a placeholder that prints an error and exits 1.
-- No linter is configured.
+- No tests exist (`npm test` is a placeholder that exits 1). No linter is configured.
