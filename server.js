@@ -6,6 +6,8 @@ const Stripe = require("stripe");
 
 const app = express();
 app.use(cors());
+app.use(express.json());
+
 
 
 // setting up connection to database
@@ -328,7 +330,5 @@ app.post('/webhook',
 
   }
 );
-
-app.use(express.json());
 
 app.listen(3000, () => console.log("Server running on port 3000"));
