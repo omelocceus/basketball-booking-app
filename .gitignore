@@ -2,6 +2,8 @@
 .env.*
 !.env.example
 node_modules/
+.next/
+tsconfig.tsbuildinfo
 npm-debug.log*
 coverage/
 .DS_Store

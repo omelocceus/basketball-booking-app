@@ -152,11 +152,20 @@ function createApp(options = {}) {
       "/admin.html",
       "/admin.js",
       "/admin.css",
+      "/success",
       "/success.html",
+      "/cancel",
       "/cancel.html"
     ],
     (req, res) => {
-      sendRootFile(res, req.path.slice(1));
+      const fileName =
+        req.path === "/success"
+          ? "success.html"
+          : req.path === "/cancel"
+            ? "cancel.html"
+            : req.path.slice(1);
+
+      sendRootFile(res, fileName);
     }
   );
 

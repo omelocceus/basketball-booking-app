@@ -14,7 +14,13 @@ This app is moving from a prototype Express/MySQL setup toward a safer PostgreSQ
 
    `npm start`
 
+5. Start the Next.js frontend in a second terminal:
+
+   `npm run dev:web`
+
 The database schema is loaded from `db/schema.sql` when the local PostgreSQL volume is first created.
+
+The backend runs on `http://localhost:3000`. The Next.js frontend runs on `http://localhost:3001` and proxies API calls to the backend through `BACKEND_URL`.
 
 ## Current backend boundaries
 
@@ -36,8 +42,8 @@ The database schema is loaded from `db/schema.sql` when the local PostgreSQL vol
 
 ## Next migration steps
 
-1. Move static HTML/JS into Next.js pages and React components.
-2. Convert backend modules to TypeScript.
-3. Replace raw SQL migrations with Prisma or Drizzle migrations.
-4. Add real admin authentication before exposing the dashboard publicly.
-5. Split development, staging, and production environments with separate PostgreSQL databases and Stripe keys.
+1. Convert backend modules to TypeScript.
+2. Replace raw SQL migrations with Prisma or Drizzle migrations.
+3. Add real admin authentication before exposing the dashboard publicly.
+4. Split development, staging, and production environments with separate PostgreSQL databases and Stripe keys.
+5. Retire the legacy static HTML/JS files after the Next.js frontend is fully deployed.

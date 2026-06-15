@@ -200,8 +200,8 @@ function createBookingService({ db, stripe, config }) {
           time: pendingBooking.time,
           trainingType: pendingBooking.trainingType
         },
-        success_url: `${config.appUrl}/success.html`,
-        cancel_url: `${config.appUrl}/cancel.html`
+        success_url: `${config.appUrl}/success`,
+        cancel_url: `${config.appUrl}/cancel`
       });
 
       await db.query(
