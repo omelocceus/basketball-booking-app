@@ -45,6 +45,35 @@ test("health check returns ok", async () => {
   assert.deepEqual(response.body, { ok: true });
 });
 
+test("booking stylesheet is served with CSS content type", async () => {
+  const app = createApp({
+    config: baseConfig(),
+    bookingService: {},
+    stripe: fakeStripe()
+  });
+
+  const response = await request(app).get("/bookings.css");
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers["content-type"], /text\/css/);
+  assert.match(response.text, /linear-gradient/);
+});
+
+test("development CSP does not upgrade localhost asset requests", async () => {
+  const app = createApp({
+    config: baseConfig({ nodeEnv: "development" }),
+    bookingService: {},
+    stripe: fakeStripe()
+  });
+
+  const response = await request(app).get("/");
+  const csp = response.headers["content-security-policy"];
+
+  assert.equal(response.status, 200);
+  assert.ok(csp);
+  assert.ok(!csp.includes("upgrade-insecure-requests"));
+});
+
 test("available times validates required date", async () => {
   const app = createApp({
     config: baseConfig(),

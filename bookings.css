@@ -40,12 +40,22 @@ body {
   animation: fadeIn 1s ease;
 }
 
-.logo {
-  width: 180px;
-  max-width: 80vw;
-
-  filter:
-    drop-shadow(0 8px 18px rgba(0,0,0,0.4));
+.brand-mark {
+  width: min(320px, 86vw);
+  padding: 14px 18px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,123,0,0.95),
+      rgba(255,47,0,0.9)
+    );
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  box-shadow:
+    0 8px 18px rgba(0,0,0,0.4);
 }
 
 /* MAIN CARD */

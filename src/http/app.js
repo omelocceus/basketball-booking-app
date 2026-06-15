@@ -51,6 +51,27 @@ function sendRootFile(res, fileName) {
   res.sendFile(path.join(process.cwd(), fileName));
 }
 
+function helmetOptions(config) {
+  return {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        baseUri: ["'self'"],
+        fontSrc: ["'self'", "https:", "data:"],
+        formAction: ["'self'"],
+        frameAncestors: ["'self'"],
+        imgSrc: ["'self'", "data:"],
+        objectSrc: ["'none'"],
+        scriptSrc: ["'self'"],
+        scriptSrcAttr: ["'none'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        upgradeInsecureRequests:
+          config.nodeEnv === "production" ? [] : null
+      }
+    }
+  };
+}
+
 function createApp(options = {}) {
   const appConfig = options.config || defaultConfig;
   const stripe =
@@ -67,7 +88,7 @@ function createApp(options = {}) {
   const app = express();
   app.disable("x-powered-by");
 
-  app.use(helmet());
+  app.use(helmet(helmetOptions(appConfig)));
 
   app.post(
     "/webhook",
