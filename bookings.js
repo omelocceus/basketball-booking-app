@@ -1,131 +1,133 @@
-const container = document.getElementById('timeSlots');
 const API_BASE_URL = window.API_BASE_URL || '';
-const viewTimesBtn = document.getElementById('viewTimesBtn');
-// this function is rendering the times available 
 
-async function renderTimes() {
-  const dateSelected = document.getElementById('datePicker').value;
+const elements = {
+  timeSlots: document.getElementById('timeSlots'),
+  selectedTime: document.getElementById('selectedTime'),
+  datePicker: document.getElementById('datePicker'),
+  viewTimesBtn: document.getElementById('viewTimesBtn'),
+  bookBtn: document.getElementById('bookBtn'),
+  name: document.getElementById('name'),
+  email: document.getElementById('email'),
+  phone: document.getElementById('phone'),
+  trainingType: document.getElementById('trainingType'),
+  message: document.getElementById('message')
+};
 
-  // Make sure user picked a date
-  if (!dateSelected) {
-    alert("Please select a date first!");
+const bookingState = {
+  selectedTime: ''
+};
+
+function setMessage(message) {
+  elements.message.textContent = message;
+}
+
+function getBookingForm() {
+  return {
+    name: elements.name.value.trim(),
+    email: elements.email.value.trim(),
+    phone: elements.phone.value.trim(),
+    date: elements.datePicker.value,
+    time: bookingState.selectedTime,
+    trainingType: elements.trainingType.value
+  };
+}
+
+async function readJsonResponse(response) {
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Request failed.');
+  }
+
+  return data;
+}
+
+function selectTimeSlot(button, timeSlot) {
+  document
+    .querySelectorAll('.time-btn')
+    .forEach(currentButton => currentButton.classList.remove('selected'));
+
+  button.classList.add('selected');
+  bookingState.selectedTime = timeSlot;
+  elements.selectedTime.value = timeSlot;
+}
+
+function renderTimeSlots(times) {
+  elements.timeSlots.replaceChildren();
+  bookingState.selectedTime = '';
+  elements.selectedTime.value = '';
+
+  if (times.length === 0) {
+    const emptyMessage = document.createElement('p');
+    emptyMessage.textContent = 'No available times for this date.';
+    elements.timeSlots.appendChild(emptyMessage);
     return;
   }
 
-  container.innerHTML = "Loading..."; // clear old slots
+  times.forEach(slot => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = slot.time_slot;
+    button.className = 'time-btn';
+    button.addEventListener('click', () => selectTimeSlot(button, slot.time_slot));
+    elements.timeSlots.appendChild(button);
+  });
+}
+
+async function renderTimes() {
+  const dateSelected = elements.datePicker.value;
+
+  if (!dateSelected) {
+    setMessage('Please select a date first.');
+    return;
+  }
+
+  setMessage('');
+  elements.timeSlots.textContent = 'Loading...';
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/available-times?date=${dateSelected}`);
-    const times = await response.json();
-
-    container.innerHTML = ""; // clear loading text
-
-    if (times.length === 0) {
-      container.innerHTML = "<p>No available times for this date.</p>";
-      return;
-    }
-
-    times.forEach(slot => {
-      const btn = document.createElement('button');
-      btn.textContent = slot.time_slot;
-      btn.className = 'time-btn';
-
-      // Highlight selected time
-      btn.onclick = () => {
-        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        document.getElementById('selectedTime').value = slot.time_slot;
-      };
-
-      container.appendChild(btn);
-    });
-
+    const response = await fetch(
+      `${API_BASE_URL}/api/available-times?date=${encodeURIComponent(dateSelected)}`
+    );
+    const times = await readJsonResponse(response);
+    renderTimeSlots(times);
   } catch (err) {
-    container.innerHTML = "<p>Error loading times. Is your server running?</p>";
+    elements.timeSlots.textContent = '';
+    setMessage(err.message || 'Error loading times. Is your server running?');
     console.error(err);
   }
 }
 
-viewTimesBtn.addEventListener('click', renderTimes);
+async function startCheckout() {
+  const form = getBookingForm();
 
-// This block of code is getting values of input fields and posting them after user clicks book now
-
-document.getElementById('bookBtn')
-.addEventListener('click', async () => {
-
-  const name =
-    document.getElementById('name').value;
-
-  const email =
-    document.getElementById('email').value;
-
-  const phone =
-    document.getElementById('phone').value;
-
-  const date =
-    document.getElementById('datePicker').value;
-
-  const time =
-    document.getElementById('selectedTime').value;
-
-  const trainingType =
-    document.getElementById('trainingType').value;
-
-  if (
-    !name ||
-    !email ||
-    !phone ||
-    !date ||
-    !time
-  ) {
-
-    alert("Please complete all fields.");
-
+  if (!form.name || !form.email || !form.phone || !form.date || !form.time) {
+    setMessage('Please complete all fields and select a time.');
     return;
-
   }
+
+  setMessage('');
+  elements.bookBtn.disabled = true;
+  elements.bookBtn.textContent = 'Starting checkout...';
 
   try {
+    const response = await fetch(`${API_BASE_URL}/create-checkout-session`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(form)
+    });
+    const data = await readJsonResponse(response);
 
-    const response = await fetch(
-      `${API_BASE_URL}/create-checkout-session`,
-      {
-        method: 'POST',
-
-        headers: {
-          'Content-Type': 'application/json'
-        },
-
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          date,
-          time,
-          trainingType
-        })
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-
-      alert(data.error);
-
-      return;
-
-    }
-
-    // Redirect to Stripe Checkout
     window.location.href = data.url;
-
   } catch (err) {
-
+    setMessage(err.message || 'Payment session failed.');
     console.error(err);
-
-    alert("Payment session failed.");
-
+    elements.bookBtn.disabled = false;
+    elements.bookBtn.textContent = 'Book Now';
   }
+}
 
-});
+elements.viewTimesBtn.addEventListener('click', renderTimes);
+elements.bookBtn.addEventListener('click', startCheckout);

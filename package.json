@@ -3,10 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build:web": "next build",
-    "check": "node --check server.js && node --check src/http/app.js && node --check src/services/bookingService.js && node --check src/validation/schemas.js && tsc --noEmit",
-    "dev:web": "next dev -p 3001",
-    "start:web": "next start -p 3001",
+    "check": "node --check server.js && node --check src/http/app.js && node --check src/services/bookingService.js && node --check src/validation/schemas.js && node --check bookings.js && node --check admin.js",
     "test": "NODE_ENV=test node --test",
     "start": "node server.js"
   },
@@ -19,21 +16,12 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
     "helmet": "^8.2.0",
-    "next": "^16.2.9",
     "pg": "^8.21.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
     "stripe": "^22.1.1",
     "zod": "^4.4.3"
   },
   "description": "",
   "devDependencies": {
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "supertest": "^7.2.2",
-    "typescript": "^6.0.3"
-  },
-  "overrides": {
-    "postcss": "^8.5.10"
+    "supertest": "^7.2.2"
   }
 }
