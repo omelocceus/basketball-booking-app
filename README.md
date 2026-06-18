@@ -36,7 +36,8 @@ The backend and vanilla HTML/CSS/JS frontend run together on `http://localhost:3
 - Checkout creates a pending booking hold before redirecting to Stripe.
 - PostgreSQL enforces one active booking per date/time slot.
 - Stripe webhook confirmation is idempotent for already-confirmed bookings.
-- Admin endpoints can require `x-admin-token` through `ADMIN_API_TOKEN`.
+- Admin endpoints use a signed `HttpOnly` cookie after `/admin.html` login.
+- `ADMIN_API_TOKEN` is optional for non-browser admin API clients.
 
 ## Frontend approach
 
@@ -48,6 +49,20 @@ The app currently ships with plain HTML, CSS, and JavaScript so deployment stays
 - Browser code calls same-origin API paths like `/api/available-times`, so deployment does not depend on hardcoded local URLs.
 
 This keeps the frontend simple while the backend carries the production-critical pieces: validation, PostgreSQL consistency, Stripe payment flow, and security middleware.
+
+## Admin login
+
+Set these values in `.env` before using `/admin.html`:
+
+- `ADMIN_PASSWORD`: the password you type into the admin login form.
+- `ADMIN_SESSION_SECRET`: a long random value used to sign the admin session cookie.
+- `ADMIN_SESSION_TTL_HOURS`: how long the admin login lasts.
+
+Generate a strong session secret with:
+
+`openssl rand -hex 32`
+
+The admin password is never stored in browser local storage. After login, the backend sets an `HttpOnly` cookie that browser JavaScript cannot read.
 
 ## Next migration steps
 

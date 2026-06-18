@@ -1,6 +1,12 @@
 const API_BASE_URL = window.API_BASE_URL || '';
 
 const elements = {
+  loginPanel: document.getElementById('loginPanel'),
+  adminDashboard: document.getElementById('adminDashboard'),
+  loginForm: document.getElementById('loginForm'),
+  adminPassword: document.getElementById('adminPassword'),
+  loginMessage: document.getElementById('loginMessage'),
+  logoutBtn: document.getElementById('logoutBtn'),
   filterDate: document.getElementById('filterDate'),
   bookingsTable: document.getElementById('bookingsTable'),
   totalBookings: document.getElementById('totalBookings'),
@@ -10,20 +16,71 @@ const elements = {
 
 let cachedBookings = [];
 
-function getAdminToken() {
-  return window.ADMIN_API_TOKEN || window.localStorage.getItem('ADMIN_API_TOKEN') || '';
+function showLogin(message = '') {
+  elements.adminDashboard.hidden = true;
+  elements.loginPanel.hidden = false;
+  elements.loginMessage.textContent = message;
+  elements.adminPassword.focus();
 }
 
-function adminHeaders() {
-  const token = getAdminToken();
-  return token ? { 'x-admin-token': token } : {};
+function showDashboard() {
+  elements.loginPanel.hidden = true;
+  elements.adminDashboard.hidden = false;
+}
+
+async function login(event) {
+  event.preventDefault();
+  elements.loginMessage.textContent = 'Checking password...';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        password: elements.adminPassword.value
+      })
+    });
+    await readJsonResponse(response);
+
+    elements.adminPassword.value = '';
+    showDashboard();
+    await loadBookings();
+  } catch (err) {
+    showLogin(err.message || 'Login failed.');
+  }
+}
+
+async function logout() {
+  await fetch(`${API_BASE_URL}/api/admin/logout`, {
+    method: 'POST'
+  });
+  cachedBookings = [];
+  updateStats();
+  renderTableMessage('Log in to view bookings.');
+  showLogin('Logged out.');
+}
+
+async function checkSession() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/session`);
+    const session = await readJsonResponse(response);
+
+    if (session.authenticated) {
+      showDashboard();
+      await loadBookings();
+    } else {
+      showLogin();
+    }
+  } catch (err) {
+    showLogin(err.message || 'Unable to check admin session.');
+  }
 }
 
 async function loadBookings() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/bookings`, {
-      headers: adminHeaders()
-    });
+    const response = await fetch(`${API_BASE_URL}/api/bookings`);
     const bookings = await readJsonResponse(response);
 
     cachedBookings = bookings;
@@ -31,7 +88,11 @@ async function loadBookings() {
     updateStats();
   } catch (err) {
     console.log(err);
-    renderTableMessage(err.message || 'Unable to load bookings.');
+    if (err.status === 401) {
+      showLogin('Please log in to view bookings.');
+    } else {
+      renderTableMessage(err.message || 'Unable to load bookings.');
+    }
   }
 }
 
@@ -39,7 +100,9 @@ async function readJsonResponse(response) {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error || 'Request failed.');
+    const error = new Error(data.error || 'Request failed.');
+    error.status = response.status;
+    throw error;
   }
 
   return data;
@@ -153,10 +216,9 @@ function updateStats() {
   elements.totalRevenue.textContent = `$${revenue.toFixed(0)}`;
 }
 
-elements.filterDate.addEventListener(
-  'change',
-  renderBookings
-);
+elements.loginForm.addEventListener('submit', login);
+elements.logoutBtn.addEventListener('click', logout);
+elements.filterDate.addEventListener('change', renderBookings);
 
 elements.bookingsTable.addEventListener('click', event => {
   if (!event.target.classList.contains('cancel-btn')) {
@@ -166,7 +228,7 @@ elements.bookingsTable.addEventListener('click', event => {
   deleteBooking(event.target.dataset.bookingId);
 });
 
-loadBookings();
+checkSession();
 
 async function deleteBooking(id) {
   const confirmed = confirm('Cancel this booking?');
@@ -175,8 +237,7 @@ async function deleteBooking(id) {
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/bookings/${id}`, {
-      method: 'DELETE',
-      headers: adminHeaders()
+      method: 'DELETE'
     });
     await readJsonResponse(response);
 

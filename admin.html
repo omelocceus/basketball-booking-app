@@ -11,7 +11,26 @@
 
 <body>
 
-  <div class="dashboard">
+  <section class="login-panel" id="loginPanel">
+    <div class="login-card">
+      <div class="brand-mark">All Around Sports Development</div>
+      <h1>Admin Login</h1>
+      <p>Enter the admin password to manage bookings.</p>
+      <form id="loginForm">
+        <input
+          type="password"
+          id="adminPassword"
+          placeholder="Admin password"
+          autocomplete="current-password"
+          required
+        >
+        <button type="submit">Log In</button>
+      </form>
+      <p id="loginMessage"></p>
+    </div>
+  </section>
+
+  <div class="dashboard" id="adminDashboard" hidden>
 
     <!-- SIDEBAR -->
 
@@ -75,6 +94,14 @@
           type="date"
           id="filterDate"
         >
+
+        <button
+          type="button"
+          class="logout-btn"
+          id="logoutBtn"
+        >
+          Log Out
+        </button>
 
       </div>
 

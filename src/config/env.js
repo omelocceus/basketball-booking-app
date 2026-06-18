@@ -29,7 +29,7 @@ function requiredNamesFor(env) {
   ];
 
   if (env.NODE_ENV === "production") {
-    names.push("ADMIN_API_TOKEN");
+    names.push("ADMIN_PASSWORD", "ADMIN_SESSION_SECRET");
   }
 
   return names;
@@ -63,6 +63,9 @@ function buildConfig(env = process.env) {
       weight: env.STRIPE_PRICE_WEIGHT
     },
     adminApiToken: env.ADMIN_API_TOKEN,
+    adminPassword: env.ADMIN_PASSWORD,
+    adminSessionSecret: env.ADMIN_SESSION_SECRET,
+    adminSessionTtlHours: Number(env.ADMIN_SESSION_TTL_HOURS || 8),
     allowManualBookings: parseBoolean(env.ALLOW_MANUAL_BOOKINGS),
     pendingHoldMinutes: Number(env.PENDING_HOLD_MINUTES || 15)
   };

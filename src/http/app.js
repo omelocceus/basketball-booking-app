@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const express = require("express");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
@@ -9,32 +10,143 @@ const { config: defaultConfig } = require("../config/env");
 const db = require("../db/pool");
 const { createBookingService } = require("../services/bookingService");
 
+const ADMIN_SESSION_COOKIE = "admin_session";
+
 function originAllowed(config, origin) {
   if (!origin) return true;
   return config.clientOrigins.includes(origin);
 }
 
+function parseCookies(cookieHeader = "") {
+  return cookieHeader
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .filter(Boolean)
+    .reduce((cookies, cookie) => {
+      const separatorIndex = cookie.indexOf("=");
+
+      if (separatorIndex === -1) return cookies;
+
+      const name = decodeURIComponent(cookie.slice(0, separatorIndex));
+      const value = decodeURIComponent(cookie.slice(separatorIndex + 1));
+      cookies[name] = value;
+      return cookies;
+    }, {});
+}
+
+function signValue(value, secret) {
+  return crypto.createHmac("sha256", secret).update(value).digest("base64url");
+}
+
+function timingSafeEqualString(left, right) {
+  const leftBuffer = Buffer.from(left || "");
+  const rightBuffer = Buffer.from(right || "");
+
+  if (leftBuffer.length !== rightBuffer.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function adminAuthConfigured(config) {
+  return Boolean(config.adminPassword && config.adminSessionSecret);
+}
+
+function createAdminSessionValue(config, now = Date.now()) {
+  const expiresAt = now + config.adminSessionTtlHours * 60 * 60 * 1000;
+  const payload = Buffer.from(JSON.stringify({ role: "admin", expiresAt })).toString("base64url");
+  const signature = signValue(payload, config.adminSessionSecret);
+
+  return `${payload}.${signature}`;
+}
+
+function verifyAdminSession(req, config) {
+  if (!adminAuthConfigured(config)) {
+    return false;
+  }
+
+  const cookies = parseCookies(req.headers.cookie);
+  const sessionValue = cookies[ADMIN_SESSION_COOKIE];
+
+  if (!sessionValue) {
+    return false;
+  }
+
+  const [payload, signature] = sessionValue.split(".");
+
+  if (!payload || !signature) {
+    return false;
+  }
+
+  const expectedSignature = signValue(payload, config.adminSessionSecret);
+
+  if (!timingSafeEqualString(signature, expectedSignature)) {
+    return false;
+  }
+
+  try {
+    const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    return session.role === "admin" && Number(session.expiresAt) > Date.now();
+  } catch (err) {
+    return false;
+  }
+}
+
+function adminCookieOptions(config) {
+  const maxAgeSeconds = config.adminSessionTtlHours * 60 * 60;
+  const attributes = [
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Strict",
+    `Max-Age=${maxAgeSeconds}`
+  ];
+
+  if (config.nodeEnv === "production") {
+    attributes.push("Secure");
+  }
+
+  return attributes.join("; ");
+}
+
+function clearAdminCookieOptions(config) {
+  const attributes = ["Path=/", "HttpOnly", "SameSite=Strict", "Max-Age=0"];
+
+  if (config.nodeEnv === "production") {
+    attributes.push("Secure");
+  }
+
+  return attributes.join("; ");
+}
+
+function hasValidAdminToken(req, config) {
+  const token = req.get("x-admin-token");
+  return Boolean(
+    config.adminApiToken &&
+      token &&
+      timingSafeEqualString(token, config.adminApiToken)
+  );
+}
+
 function requireAdminAuth(config) {
   return (req, res, next) => {
-    if (!config.adminApiToken) {
+    if (!adminAuthConfigured(config) && !config.adminApiToken) {
       if (config.nodeEnv === "production") {
-        return res.status(503).json({ error: "Admin API token is not configured." });
+        return res.status(503).json({ error: "Admin authentication is not configured." });
       }
 
       return next();
     }
 
-    const token = req.get("x-admin-token");
-
-    if (!token) {
-      return res.status(401).json({ error: "Admin token is required." });
+    if (verifyAdminSession(req, config) || hasValidAdminToken(req, config)) {
+      return next();
     }
 
-    if (token !== config.adminApiToken) {
+    if (config.adminApiToken && req.get("x-admin-token")) {
       return res.status(403).json({ error: "Admin token is invalid." });
     }
 
-    return next();
+    return res.status(401).json({ error: "Admin login is required." });
   };
 }
 
@@ -138,6 +250,40 @@ function createApp(options = {}) {
 
   app.get("/health", (req, res) => {
     res.json({ ok: true });
+  });
+
+  app.get("/api/admin/session", (req, res) => {
+    res.json({ authenticated: verifyAdminSession(req, appConfig) });
+  });
+
+  app.post("/api/admin/login", (req, res) => {
+    if (!adminAuthConfigured(appConfig)) {
+      return res.status(503).json({ error: "Admin login is not configured." });
+    }
+
+    const password = req.body && req.body.password;
+
+    if (
+      typeof password !== "string" ||
+      !timingSafeEqualString(password, appConfig.adminPassword)
+    ) {
+      return res.status(401).json({ error: "Invalid admin password." });
+    }
+
+    const sessionValue = createAdminSessionValue(appConfig);
+    res.setHeader(
+      "Set-Cookie",
+      `${ADMIN_SESSION_COOKIE}=${encodeURIComponent(sessionValue)}; ${adminCookieOptions(appConfig)}`
+    );
+    return res.json({ success: true });
+  });
+
+  app.post("/api/admin/logout", (req, res) => {
+    res.setHeader(
+      "Set-Cookie",
+      `${ADMIN_SESSION_COOKIE}=; ${clearAdminCookieOptions(appConfig)}`
+    );
+    return res.json({ success: true });
   });
 
   app.get("/", (req, res) => {

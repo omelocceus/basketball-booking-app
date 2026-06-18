@@ -158,6 +158,65 @@ test("admin routes require token when configured", async () => {
   assert.equal(validToken.body[0].name, "Jordan");
 });
 
+test("admin login sets an HttpOnly session cookie for bookings access", async () => {
+  const app = createApp({
+    config: baseConfig({
+      adminPassword: "correct-password",
+      adminSessionSecret: "a-long-test-session-secret",
+      adminSessionTtlHours: 8
+    }),
+    bookingService: {
+      async listBookings() {
+        return [{ id: 1, name: "Jordan" }];
+      }
+    },
+    stripe: fakeStripe()
+  });
+  const agent = request.agent(app);
+
+  const unauthenticated = await agent.get("/api/bookings");
+  const badLogin = await agent
+    .post("/api/admin/login")
+    .send({ password: "wrong-password" });
+  const login = await agent
+    .post("/api/admin/login")
+    .send({ password: "correct-password" });
+  const authenticated = await agent.get("/api/bookings");
+
+  assert.equal(unauthenticated.status, 401);
+  assert.equal(badLogin.status, 401);
+  assert.equal(login.status, 200);
+  assert.match(login.headers["set-cookie"][0], /HttpOnly/);
+  assert.match(login.headers["set-cookie"][0], /SameSite=Strict/);
+  assert.equal(authenticated.status, 200);
+  assert.equal(authenticated.body[0].name, "Jordan");
+});
+
+test("admin logout clears the session cookie", async () => {
+  const app = createApp({
+    config: baseConfig({
+      adminPassword: "correct-password",
+      adminSessionSecret: "a-long-test-session-secret",
+      adminSessionTtlHours: 8
+    }),
+    bookingService: {
+      async listBookings() {
+        return [{ id: 1, name: "Jordan" }];
+      }
+    },
+    stripe: fakeStripe()
+  });
+  const agent = request.agent(app);
+
+  await agent.post("/api/admin/login").send({ password: "correct-password" });
+  const logout = await agent.post("/api/admin/logout");
+  const bookings = await agent.get("/api/bookings");
+
+  assert.equal(logout.status, 200);
+  assert.match(logout.headers["set-cookie"][0], /Max-Age=0/);
+  assert.equal(bookings.status, 401);
+});
+
 test("webhook confirms checkout sessions using raw body route", async () => {
   let confirmedSessionId;
   const app = createApp({
