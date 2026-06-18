@@ -189,6 +189,8 @@ Important blocks:
 - `formatTimeSlot()` turns database values like `13:00` into user-friendly labels like `1:00 PM`.
 - `todayIsoDate()` calculates today's date in Eastern Time.
 - `readJsonResponse()` turns failed API responses into normal JavaScript errors.
+- `fetchAvailableTimes()` asks the backend for the current open slots.
+- `refreshAvailableTimes()` redraws the slot buttons from the latest backend data.
 - `renderTimeSlots()` creates time buttons safely with DOM APIs.
 - `renderTimes()` fetches available times from `/api/available-times`.
 - `startCheckout()` validates the form, calls `/create-checkout-session`, and redirects to Stripe.
@@ -199,6 +201,7 @@ Why it helps:
 - The JS is broken into small functions instead of one long click handler.
 - DOM nodes are created with `createElement()` instead of inserting HTML strings.
 - The database still stores sortable `HH:MM` values, while the user sees AM/PM labels.
+- Checkout re-checks availability before redirecting to Stripe so stale pages show a clear "choose another time" message.
 
 ## `admin.js`
 

@@ -73,10 +73,30 @@ async function readJsonResponse(response) {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error || 'Request failed.');
+    const error = new Error(data.error || 'Request failed.');
+    error.code = data.code;
+    throw error;
   }
 
   return data;
+}
+
+function selectedTimeExists(times, selectedTime) {
+  return times.some(slot => slot.time_slot === selectedTime);
+}
+
+async function fetchAvailableTimes(dateValue) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/available-times?date=${encodeURIComponent(dateValue)}`
+  );
+  return readJsonResponse(response);
+}
+
+// This refreshes the buttons with the backend's latest view of open slots.
+async function refreshAvailableTimes(dateValue) {
+  const times = await fetchAvailableTimes(dateValue);
+  renderTimeSlots(times);
+  return times;
 }
 
 function selectTimeSlot(button, timeSlot) {
@@ -129,11 +149,7 @@ async function renderTimes() {
   elements.timeSlots.textContent = 'Loading...';
 
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/available-times?date=${encodeURIComponent(dateSelected)}`
-    );
-    const times = await readJsonResponse(response);
-    renderTimeSlots(times);
+    await refreshAvailableTimes(dateSelected);
   } catch (err) {
     elements.timeSlots.textContent = '';
     setMessage(err.message || 'Error loading times. Is your server running?');
@@ -159,6 +175,18 @@ async function startCheckout() {
   elements.bookBtn.textContent = 'Starting checkout...';
 
   try {
+    // Re-check availability right before Stripe so users get a clear message
+    // if another customer took the slot while this page was sitting open.
+    const latestTimes = await fetchAvailableTimes(form.date);
+
+    if (!selectedTimeExists(latestTimes, form.time)) {
+      renderTimeSlots(latestTimes);
+      setMessage('That time was just booked. Please choose another available time.');
+      elements.bookBtn.disabled = false;
+      elements.bookBtn.textContent = 'Book Now';
+      return;
+    }
+
     const response = await fetch(`${API_BASE_URL}/create-checkout-session`, {
       method: 'POST',
       headers: {
@@ -170,7 +198,16 @@ async function startCheckout() {
 
     window.location.href = data.url;
   } catch (err) {
-    setMessage(err.message || 'Payment session failed.');
+    if (err.message === 'This time slot is already booked.' || err.code === 'SLOT_TAKEN') {
+      try {
+        await refreshAvailableTimes(form.date);
+      } catch (refreshErr) {
+        console.error(refreshErr);
+      }
+      setMessage('That time was just booked. Please choose another available time.');
+    } else {
+      setMessage(err.message || 'Payment session failed.');
+    }
     console.error(err);
     elements.bookBtn.disabled = false;
     elements.bookBtn.textContent = 'Book Now';
