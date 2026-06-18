@@ -17,6 +17,14 @@ const elements = {
 
 let cachedBookings = [];
 
+function apiUrl(path) {
+  return `${API_BASE_URL}${path}`;
+}
+
+function isServedByHttp() {
+  return window.location.protocol === 'http:' || window.location.protocol === 'https:';
+}
+
 // Show only the login UI when there is no valid admin session.
 function showLogin(message = '') {
   elements.adminDashboard.hidden = true;
@@ -37,7 +45,7 @@ async function login(event) {
   elements.loginMessage.textContent = 'Checking password...';
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+    const response = await fetch(apiUrl('/api/admin/login'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -58,7 +66,7 @@ async function login(event) {
 
 // Ask the backend to expire the cookie, then clear dashboard state in the browser.
 async function logout() {
-  await fetch(`${API_BASE_URL}/api/admin/logout`, {
+  await fetch(apiUrl('/api/admin/logout'), {
     method: 'POST'
   });
   cachedBookings = [];
@@ -69,8 +77,13 @@ async function logout() {
 
 // On page load, ask the backend whether the browser already has a valid session cookie.
 async function checkSession() {
+  if (!isServedByHttp()) {
+    showLogin('Open this page from http://localhost:3000/admin.html, not directly from your files.');
+    return;
+  }
+
   try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/session`);
+    const response = await fetch(apiUrl('/api/admin/session'));
     const session = await readJsonResponse(response);
 
     if (session.authenticated) {
@@ -86,7 +99,7 @@ async function checkSession() {
 
 async function loadBookings() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/bookings`);
+    const response = await fetch(apiUrl('/api/bookings'));
     const bookings = await readJsonResponse(response);
 
     cachedBookings = bookings;
@@ -103,7 +116,10 @@ async function loadBookings() {
 }
 
 async function readJsonResponse(response) {
-  const data = await response.json();
+  const contentType = response.headers.get('content-type') || '';
+  const data = contentType.includes('application/json')
+    ? await response.json()
+    : { error: await response.text() };
 
   if (!response.ok) {
     const error = new Error(data.error || 'Request failed.');
@@ -244,7 +260,7 @@ async function deleteBooking(id) {
   if (!confirmed) return;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/bookings/${id}`, {
+    const response = await fetch(apiUrl(`/api/bookings/${id}`), {
       method: 'DELETE'
     });
     await readJsonResponse(response);

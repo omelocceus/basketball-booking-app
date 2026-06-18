@@ -187,6 +187,8 @@ Important blocks:
 - `elements` stores references to dashboard and login elements.
 - `showLogin()` hides the dashboard and shows the login panel.
 - `showDashboard()` hides the login panel and shows the dashboard.
+- `apiUrl()` builds same-origin API paths such as `/api/admin/login`.
+- `isServedByHttp()` checks that the page was opened through the Node server.
 - `login()` sends the password to `/api/admin/login`.
 - `logout()` calls `/api/admin/logout` and returns to the login panel.
 - `checkSession()` asks the backend whether the cookie is still valid.
@@ -199,6 +201,8 @@ Why it helps:
 - The admin secret is no longer saved in `localStorage`.
 - Refreshing the page checks the server-side cookie session.
 - Customer booking data is inserted with `textContent`, reducing XSS risk.
+
+If the browser says "The string did not match the expected pattern", it usually means the page was opened from the wrong place. Open `http://localhost:3000/admin.html`, not the raw `admin.html` file from Finder.
 
 ## `admin.html` and `admin.css`
 
