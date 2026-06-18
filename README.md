@@ -20,6 +20,10 @@ The database schema is loaded from `db/schema.sql` when the local PostgreSQL vol
 
 The backend and vanilla HTML/CSS/JS frontend run together on `http://localhost:3000`.
 
+To refresh the schedule in an already-created local database, run:
+
+`docker compose exec -T postgres psql -U booking_app -d booking_app < db/seed-schedule.sql`
+
 ## Current backend boundaries
 
 - `server.js` starts the HTTP process only.
@@ -28,6 +32,7 @@ The backend and vanilla HTML/CSS/JS frontend run together on `http://localhost:3
 - `src/validation/schemas.js` owns request validation.
 - `src/db/pool.js` owns PostgreSQL connections.
 - `src/config/env.js` owns environment configuration.
+- `db/seed-schedule.sql` refreshes the weekly availability schedule for existing databases.
 - `bookings.html`, `bookings.css`, and `bookings.js` own the customer booking UI.
 - `admin.html`, `admin.css`, and `admin.js` own the admin dashboard UI.
 

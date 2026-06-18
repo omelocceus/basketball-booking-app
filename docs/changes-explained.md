@@ -11,6 +11,7 @@ This branch keeps the frontend as plain HTML, CSS, and JavaScript, but makes the
 - `src/validation/schemas.js` owns request validation.
 - `src/services/bookingService.js` owns booking, checkout, availability, cancellation, and Stripe confirmation rules.
 - `db/schema.sql` creates PostgreSQL tables, seed schedule slots, and the no-double-booking index.
+- `db/seed-schedule.sql` refreshes schedule rows in an already-created database.
 - `bookings.html`, `bookings.css`, and `bookings.js` remain the customer booking page.
 - `admin.html`, `admin.css`, and `admin.js` remain the admin dashboard, now with password login and logout.
 - `.env.example` lists the environment variables you need locally and in production.
@@ -123,6 +124,22 @@ Why it helps:
 
 - PostgreSQL protects the most important rule: one active booking per time slot.
 - Even if two users click at the same time, the database blocks double booking.
+
+## `db/seed-schedule.sql`
+
+This file updates the schedule table after the database already exists.
+
+Important blocks:
+
+- `BEGIN` starts a transaction.
+- `DELETE FROM schedule` removes old availability rows.
+- `INSERT INTO schedule` adds the current availability.
+- `COMMIT` saves the refresh.
+
+Why it helps:
+
+- Docker only runs `schema.sql` automatically the first time the database volume is created.
+- This file lets you update your existing local or production schedule without deleting the whole database.
 
 ## `src/http/app.js`
 
