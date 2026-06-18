@@ -1,5 +1,6 @@
 const API_BASE_URL = window.API_BASE_URL || '';
 
+// Keep all DOM lookups in one place so the rest of the file can use clear names.
 const elements = {
   loginPanel: document.getElementById('loginPanel'),
   adminDashboard: document.getElementById('adminDashboard'),
@@ -16,6 +17,7 @@ const elements = {
 
 let cachedBookings = [];
 
+// Show only the login UI when there is no valid admin session.
 function showLogin(message = '') {
   elements.adminDashboard.hidden = true;
   elements.loginPanel.hidden = false;
@@ -23,11 +25,13 @@ function showLogin(message = '') {
   elements.adminPassword.focus();
 }
 
+// Show the protected dashboard after the backend accepts the admin session.
 function showDashboard() {
   elements.loginPanel.hidden = true;
   elements.adminDashboard.hidden = false;
 }
 
+// Send the password to the backend; the backend sets the HttpOnly cookie on success.
 async function login(event) {
   event.preventDefault();
   elements.loginMessage.textContent = 'Checking password...';
@@ -52,6 +56,7 @@ async function login(event) {
   }
 }
 
+// Ask the backend to expire the cookie, then clear dashboard state in the browser.
 async function logout() {
   await fetch(`${API_BASE_URL}/api/admin/logout`, {
     method: 'POST'
@@ -62,6 +67,7 @@ async function logout() {
   showLogin('Logged out.');
 }
 
+// On page load, ask the backend whether the browser already has a valid session cookie.
 async function checkSession() {
   try {
     const response = await fetch(`${API_BASE_URL}/api/admin/session`);
@@ -126,6 +132,7 @@ function renderTableMessage(message) {
   elements.bookingsTable.appendChild(row);
 }
 
+// Use textContent instead of HTML strings so customer data is not treated as markup.
 function createCell(text) {
   const cell = document.createElement('td');
   cell.textContent = text || '';
@@ -216,6 +223,7 @@ function updateStats() {
   elements.totalRevenue.textContent = `$${revenue.toFixed(0)}`;
 }
 
+// Event listeners connect user actions to the small functions above.
 elements.loginForm.addEventListener('submit', login);
 elements.logoutBtn.addEventListener('click', logout);
 elements.filterDate.addEventListener('change', renderBookings);

@@ -17,6 +17,7 @@ function originAllowed(config, origin) {
   return config.clientOrigins.includes(origin);
 }
 
+// Express does not parse cookies by default, so this reads the raw Cookie header.
 function parseCookies(cookieHeader = "") {
   return cookieHeader
     .split(";")
@@ -34,10 +35,12 @@ function parseCookies(cookieHeader = "") {
     }, {});
 }
 
+// Sign session payloads so users cannot edit their cookie and become admin.
 function signValue(value, secret) {
   return crypto.createHmac("sha256", secret).update(value).digest("base64url");
 }
 
+// Use a timing-safe comparison for secrets so attackers cannot learn values byte by byte.
 function timingSafeEqualString(left, right) {
   const leftBuffer = Buffer.from(left || "");
   const rightBuffer = Buffer.from(right || "");
@@ -53,6 +56,7 @@ function adminAuthConfigured(config) {
   return Boolean(config.adminPassword && config.adminSessionSecret);
 }
 
+// The cookie stores only a role and expiration; the signature proves the server created it.
 function createAdminSessionValue(config, now = Date.now()) {
   const expiresAt = now + config.adminSessionTtlHours * 60 * 60 * 1000;
   const payload = Buffer.from(JSON.stringify({ role: "admin", expiresAt })).toString("base64url");
@@ -61,6 +65,7 @@ function createAdminSessionValue(config, now = Date.now()) {
   return `${payload}.${signature}`;
 }
 
+// Verify the admin cookie signature and expiration before allowing dashboard API access.
 function verifyAdminSession(req, config) {
   if (!adminAuthConfigured(config)) {
     return false;
@@ -93,6 +98,7 @@ function verifyAdminSession(req, config) {
   }
 }
 
+// HttpOnly keeps browser JavaScript from reading the session cookie.
 function adminCookieOptions(config) {
   const maxAgeSeconds = config.adminSessionTtlHours * 60 * 60;
   const attributes = [
@@ -119,6 +125,7 @@ function clearAdminCookieOptions(config) {
   return attributes.join("; ");
 }
 
+// Optional fallback for scripts or API tools; browser admin login should use cookies.
 function hasValidAdminToken(req, config) {
   const token = req.get("x-admin-token");
   return Boolean(

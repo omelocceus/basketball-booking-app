@@ -2,6 +2,8 @@
 
 This app is moving from a prototype Express/MySQL setup toward a safer PostgreSQL-backed architecture.
 
+For a beginner-friendly walkthrough of what changed and why, read `docs/changes-explained.md`.
+
 ## Local setup
 
 1. Copy `.env.example` to `.env`.
