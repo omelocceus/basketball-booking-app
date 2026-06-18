@@ -17,6 +17,25 @@ const bookingState = {
   selectedTime: ''
 };
 
+const BOOKING_TIME_ZONE = 'America/New_York';
+
+function todayIsoDate() {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: BOOKING_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(new Date());
+  const dateParts = Object.fromEntries(parts.map(part => [part.type, part.value]));
+
+  return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+}
+
+// The browser min date helps regular users avoid selecting old dates in Eastern Time.
+function setMinimumBookingDate() {
+  elements.datePicker.min = todayIsoDate();
+}
+
 function setMessage(message) {
   elements.message.textContent = message;
 }
@@ -43,6 +62,11 @@ function formatTimeSlot(timeSlot) {
   const period = hour >= 12 ? 'PM' : 'AM';
   const displayHour = hour % 12 || 12;
   return `${displayHour}:${minute} ${period}`;
+}
+
+// The frontend check gives a friendly message before making an API request.
+function isPastDate(dateValue) {
+  return dateValue < todayIsoDate();
 }
 
 async function readJsonResponse(response) {
@@ -95,6 +119,12 @@ async function renderTimes() {
     return;
   }
 
+  if (isPastDate(dateSelected)) {
+    setMessage('Please select today or a future date.');
+    elements.timeSlots.replaceChildren();
+    return;
+  }
+
   setMessage('');
   elements.timeSlots.textContent = 'Loading...';
 
@@ -116,6 +146,11 @@ async function startCheckout() {
 
   if (!form.name || !form.email || !form.phone || !form.date || !form.time) {
     setMessage('Please complete all fields and select a time.');
+    return;
+  }
+
+  if (isPastDate(form.date)) {
+    setMessage('Please select today or a future date.');
     return;
   }
 
@@ -144,3 +179,4 @@ async function startCheckout() {
 
 elements.viewTimesBtn.addEventListener('click', renderTimes);
 elements.bookBtn.addEventListener('click', startCheckout);
+setMinimumBookingDate();

@@ -54,6 +54,7 @@ The app currently ships with plain HTML, CSS, and JavaScript so deployment stays
 - CSS files define the visual design.
 - JavaScript files own page state, API calls, and rendering.
 - Browser code calls same-origin API paths like `/api/available-times`, so deployment does not depend on hardcoded local URLs.
+- Booking dates and user-facing time labels are presented in Eastern Time.
 
 This keeps the frontend simple while the backend carries the production-critical pieces: validation, PostgreSQL consistency, Stripe payment flow, and security middleware.
 

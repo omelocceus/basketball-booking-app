@@ -3,6 +3,12 @@ const test = require("node:test");
 
 const { createBookingService } = require("../src/services/bookingService");
 
+function futureDate(daysFromNow = 7) {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + daysFromNow);
+  return date.toISOString().slice(0, 10);
+}
+
 function serviceWithClient(client) {
   return createBookingService({
     db: {
@@ -45,7 +51,7 @@ test("manual booking maps database slot conflicts to 409 errors", async () => {
       service.createManualBooking({
         name: "Jordan Trainer",
         email: "jordan@example.com",
-        date: "2026-06-15",
+        date: futureDate(),
         time: "09:00",
         trainingType: "oncourt"
       }),
@@ -104,7 +110,7 @@ test("checkout creates a pending hold before creating Stripe session", async () 
     name: "Jordan Trainer",
     email: "jordan@example.com",
     phone: "555-555-5555",
-    date: "2026-06-15",
+    date: futureDate(),
     time: "09:00",
     trainingType: "oncourt"
   });

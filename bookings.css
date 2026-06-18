@@ -144,6 +144,15 @@ select:focus {
   transform: scale(1.02);
 }
 
+.time-zone-note {
+  color: #c7d7ff;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-top: -8px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
 /* TIME SLOT GRID */
 
 #timeSlots {

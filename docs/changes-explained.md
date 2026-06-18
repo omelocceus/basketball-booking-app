@@ -74,6 +74,7 @@ This file uses Zod to validate request data.
 Important blocks:
 
 - `isoDate` accepts only real `YYYY-MM-DD` dates.
+- `bookableDate` rejects dates before today in Eastern Time.
 - `timeSlot` requires a non-empty time string.
 - `customer` validates name, email, and phone.
 - `trainingType` allows only `oncourt`, `sand`, or `weight`.
@@ -86,6 +87,7 @@ Why it helps:
 
 - Bad input is rejected before it reaches Stripe or PostgreSQL.
 - Validation rules live in one place instead of being repeated in routes.
+- The backend repeats browser date rules because users can bypass frontend controls.
 
 ## `src/services/bookingService.js`
 
@@ -185,6 +187,7 @@ Important blocks:
 - `bookingState` stores the selected time.
 - `getBookingForm()` reads and trims the current form values.
 - `formatTimeSlot()` turns database values like `13:00` into user-friendly labels like `1:00 PM`.
+- `todayIsoDate()` calculates today's date in Eastern Time.
 - `readJsonResponse()` turns failed API responses into normal JavaScript errors.
 - `renderTimeSlots()` creates time buttons safely with DOM APIs.
 - `renderTimes()` fetches available times from `/api/available-times`.
