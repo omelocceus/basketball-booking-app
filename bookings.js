@@ -32,6 +32,19 @@ function getBookingForm() {
   };
 }
 
+function formatTimeSlot(timeSlot) {
+  const [hourText, minute = '00'] = timeSlot.split(':');
+  const hour = Number(hourText);
+
+  if (Number.isNaN(hour)) {
+    return timeSlot;
+  }
+
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minute} ${period}`;
+}
+
 async function readJsonResponse(response) {
   const data = await response.json();
 
@@ -67,7 +80,7 @@ function renderTimeSlots(times) {
   times.forEach(slot => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.textContent = slot.time_slot;
+    button.textContent = formatTimeSlot(slot.time_slot);
     button.className = 'time-btn';
     button.addEventListener('click', () => selectTimeSlot(button, slot.time_slot));
     elements.timeSlots.appendChild(button);

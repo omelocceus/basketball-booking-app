@@ -130,6 +130,19 @@ async function readJsonResponse(response) {
   return data;
 }
 
+function formatTimeSlot(timeSlot) {
+  const [hourText, minute = '00'] = timeSlot.split(':');
+  const hour = Number(hourText);
+
+  if (Number.isNaN(hour)) {
+    return timeSlot;
+  }
+
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minute} ${period}`;
+}
+
 function trainingClass(trainingType) {
   if (trainingType === 'oncourt') return 'oncourt';
   if (trainingType === 'sand') return 'sand';
@@ -209,7 +222,7 @@ function renderBookings() {
     row.append(
       createCell(booking.name),
       createCell(booking.date),
-      createCell(booking.time_slot),
+      createCell(formatTimeSlot(booking.time_slot)),
       createTrainingCell(booking.training_type),
       createActionsCell(String(booking.id))
     );

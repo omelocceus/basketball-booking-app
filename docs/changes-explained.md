@@ -184,6 +184,7 @@ Important blocks:
 - `elements` stores references to HTML elements.
 - `bookingState` stores the selected time.
 - `getBookingForm()` reads and trims the current form values.
+- `formatTimeSlot()` turns database values like `13:00` into user-friendly labels like `1:00 PM`.
 - `readJsonResponse()` turns failed API responses into normal JavaScript errors.
 - `renderTimeSlots()` creates time buttons safely with DOM APIs.
 - `renderTimes()` fetches available times from `/api/available-times`.
@@ -194,6 +195,7 @@ Why it helps:
 - The page no longer depends on hardcoded `localhost` API URLs.
 - The JS is broken into small functions instead of one long click handler.
 - DOM nodes are created with `createElement()` instead of inserting HTML strings.
+- The database still stores sortable `HH:MM` values, while the user sees AM/PM labels.
 
 ## `admin.js`
 
@@ -209,6 +211,7 @@ Important blocks:
 - `login()` sends the password to `/api/admin/login`.
 - `logout()` calls `/api/admin/logout` and returns to the login panel.
 - `checkSession()` asks the backend whether the cookie is still valid.
+- `formatTimeSlot()` turns admin table values like `08:00` into `8:00 AM`.
 - `loadBookings()` fetches bookings after login.
 - `renderBookings()` creates table rows with DOM APIs.
 - `updateStats()` calculates total bookings, today's bookings, and revenue.
